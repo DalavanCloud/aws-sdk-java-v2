@@ -52,6 +52,7 @@ import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutR
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal implementation of {@link JsonClient}.
@@ -101,8 +102,14 @@ final class DefaultJsonClient implements JsonClient {
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
                                                                                                      AwsServiceException, SdkClientException, JsonException {
+<<<<<<< 69e57a64e16ab9b10a1294d60262502f8d3ac6d8
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                                                                        .isPayloadJson(true).build();
+=======
+        String hostPrefix = "{StringMember}-foo.";
+        Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
+        String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
+>>>>>>> Add support for endpoint trait
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                             APostOperationResponse::builder);
@@ -112,7 +119,8 @@ final class DefaultJsonClient implements JsonClient {
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                                          .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                         .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                                         .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest)
+                                         .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
     }
 
     /**

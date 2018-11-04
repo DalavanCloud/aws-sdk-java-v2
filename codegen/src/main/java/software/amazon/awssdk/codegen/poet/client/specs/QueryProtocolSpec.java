@@ -98,6 +98,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
             .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()" +
                  ".withResponseHandler($N)" +
                  ".withErrorResponseHandler($N)" +
+                 hostPrefixExpression(opModel) +
                  ".withInput($L)",
                  ClientExecutionParams.class,
                  requestType,
@@ -127,6 +128,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                                        ".withMarshaller(new $T(protocolFactory))" +
                                        ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler($N)\n" +
+                                       hostPrefixExpression(opModel) +
                                        asyncRequestBody +
                                        ".withInput($L) $L);",
                                        ClientExecutionParams.class,
