@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.internal.http.pipeline.stages.utils.ExceptionReportingUtils.reportFailureToInterceptors;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
@@ -30,9 +29,8 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
-public class AsyncExecutionFailureExceptionReportingStage<OutputT>
+public final class AsyncExecutionFailureExceptionReportingStage<OutputT>
     implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<OutputT>> {
-    private static final Logger log = Logger.loggerFor(AsyncExecutionFailureExceptionReportingStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<OutputT>> wrapped;
 
@@ -58,24 +56,5 @@ public class AsyncExecutionFailureExceptionReportingStage<OutputT>
         });
     }
 
-    /**
-     * Report the failure to the execution interceptors. Swallow any non-SdkServiceExceptions thrown from the interceptor since
-     * we don't want to replace the execution failure.
-     *
-     * @param context The execution context.
-     * @param failure The execution failure.
-     */
-    private static Throwable reportFailureToInterceptors(RequestExecutionContext context, Throwable failure) {
-        try {
-            Context.FailedExecution failedContext =
-                    new DefaultFailedExecutionContext(context.executionContext().interceptorContext(), failure);
-            context.interceptorChain().onExecutionFailure(failedContext, context.executionAttributes());
-        } catch (SdkServiceException e) {
-            return e;
-        } catch (Throwable t) {
-            log.warn(() -> "Interceptor chain threw an error from onExecutionFailure().", t);
-        }
 
-        return failure;
-    }
 }

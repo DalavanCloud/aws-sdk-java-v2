@@ -35,10 +35,10 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 public final class ExceptionTranslationInterceptor implements ExecutionInterceptor {
 
     @Override
-    public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
+    public Throwable modifyException(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
 
         if (!isS3Exception404(context.exception()) || !isHeadRequest(context.request())) {
-            return;
+            return context.exception();
         }
 
         String message = context.exception().getMessage();
@@ -54,7 +54,7 @@ public final class ExceptionTranslationInterceptor implements ExecutionIntercept
         AwsErrorDetails errorDetails = exception.awsErrorDetails();
 
         if (context.request() instanceof HeadObjectRequest) {
-            throw NoSuchKeyException.builder()
+            return NoSuchKeyException.builder()
                                     .awsErrorDetails(fillErrorDetails(errorDetails, "NoSuchKey",
                                                                       "The specified key does not exist."))
                                     .statusCode(404)
@@ -64,7 +64,7 @@ public final class ExceptionTranslationInterceptor implements ExecutionIntercept
         }
 
         if (context.request() instanceof HeadBucketRequest) {
-            throw NoSuchBucketException.builder()
+            return NoSuchBucketException.builder()
                                        .awsErrorDetails(fillErrorDetails(errorDetails, "NoSuchBucket",
                                                                          "The specified bucket does not exist."))
                                        .statusCode(404)
@@ -72,6 +72,8 @@ public final class ExceptionTranslationInterceptor implements ExecutionIntercept
                                        .message(message)
                                        .build();
         }
+
+        return context.exception();
     }
 
     private AwsErrorDetails fillErrorDetails(AwsErrorDetails original, String errorCode, String errorMessage) {

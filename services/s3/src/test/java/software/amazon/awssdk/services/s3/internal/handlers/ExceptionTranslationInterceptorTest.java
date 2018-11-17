@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.BeforeClass;
@@ -45,47 +46,40 @@ public class ExceptionTranslationInterceptorTest {
     @Test
     public void headBucket404_shouldTranslateException() {
         S3Exception s3Exception = create404S3Exception();
-        Context.FailedExecution failedExecution =
-            new DefaultFailedExecutionContext(InterceptorContext.builder()
-                                                                .request(HeadBucketRequest.builder().build())
-                                                                .build(), s3Exception);
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception);
 
-        assertThatThrownBy(() -> interceptor.onExecutionFailure(failedExecution, new ExecutionAttributes()))
-            .isInstanceOf(NoSuchBucketException.class);
+        assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes()))
+            .isExactlyInstanceOf(NoSuchBucketException.class);
     }
 
     @Test
     public void headObject404_shouldTranslateException() {
         S3Exception s3Exception = create404S3Exception();
-        Context.FailedExecution failedExecution =
-            new DefaultFailedExecutionContext(InterceptorContext.builder()
-                                                                .request(HeadObjectRequest.builder().build())
-                                                                .build(), s3Exception);
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception);
 
-        assertThatThrownBy(() -> interceptor.onExecutionFailure(failedExecution, new ExecutionAttributes()))
-            .isInstanceOf(NoSuchKeyException.class);
+        assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes()))
+            .isExactlyInstanceOf(NoSuchKeyException.class);
     }
 
     @Test
     public void headObjectOtherException_shouldNotThrowException() {
         S3Exception s3Exception = (S3Exception) S3Exception.builder().statusCode(500).build();
-        Context.FailedExecution failedExecution =
-            new DefaultFailedExecutionContext(InterceptorContext.builder()
-                                                                .request(HeadObjectRequest.builder().build())
-                                                                .build(), s3Exception);
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception);
 
-        interceptor.onExecutionFailure(failedExecution, new ExecutionAttributes());
+        assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes())).isEqualTo(s3Exception);
+    }
+
+    private Context.FailedExecution getFailedExecution(S3Exception s3Exception) {
+        return DefaultFailedExecutionContext.builder().interceptorContext(InterceptorContext.builder()
+                                                                                            .request(PutObjectRequest.builder().build())
+                                                                                            .build()).exception(s3Exception).build();
     }
 
     @Test
     public void otherRequest_shouldNotThrowException() {
         S3Exception s3Exception = create404S3Exception();
-        Context.FailedExecution failedExecution =
-            new DefaultFailedExecutionContext(InterceptorContext.builder()
-                                                                .request(PutObjectRequest.builder().build())
-                                                                .build(), s3Exception);
-
-        interceptor.onExecutionFailure(failedExecution, new ExecutionAttributes());
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception);
+        assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes())).isEqualTo(s3Exception);
     }
 
     private S3Exception create404S3Exception() {
