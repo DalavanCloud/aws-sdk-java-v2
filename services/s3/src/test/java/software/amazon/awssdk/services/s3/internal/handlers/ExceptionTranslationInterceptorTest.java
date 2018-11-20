@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
@@ -46,7 +47,8 @@ public class ExceptionTranslationInterceptorTest {
     @Test
     public void headBucket404_shouldTranslateException() {
         S3Exception s3Exception = create404S3Exception();
-        Context.FailedExecution failedExecution = getFailedExecution(s3Exception);
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
+                                                                     HeadBucketRequest.builder().build());
 
         assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes()))
             .isExactlyInstanceOf(NoSuchBucketException.class);
@@ -55,7 +57,8 @@ public class ExceptionTranslationInterceptorTest {
     @Test
     public void headObject404_shouldTranslateException() {
         S3Exception s3Exception = create404S3Exception();
-        Context.FailedExecution failedExecution = getFailedExecution(s3Exception);
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
+                                                                     HeadObjectRequest.builder().build());
 
         assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes()))
             .isExactlyInstanceOf(NoSuchKeyException.class);
@@ -64,21 +67,23 @@ public class ExceptionTranslationInterceptorTest {
     @Test
     public void headObjectOtherException_shouldNotThrowException() {
         S3Exception s3Exception = (S3Exception) S3Exception.builder().statusCode(500).build();
-        Context.FailedExecution failedExecution = getFailedExecution(s3Exception);
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
+                                                                     HeadObjectRequest.builder().build());
 
         assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes())).isEqualTo(s3Exception);
     }
 
-    private Context.FailedExecution getFailedExecution(S3Exception s3Exception) {
+    private Context.FailedExecution getFailedExecution(S3Exception s3Exception, SdkRequest sdkRequest) {
         return DefaultFailedExecutionContext.builder().interceptorContext(InterceptorContext.builder()
-                                                                                            .request(PutObjectRequest.builder().build())
+                                                                                            .request(sdkRequest)
                                                                                             .build()).exception(s3Exception).build();
     }
 
     @Test
     public void otherRequest_shouldNotThrowException() {
         S3Exception s3Exception = create404S3Exception();
-        Context.FailedExecution failedExecution = getFailedExecution(s3Exception);
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
+                                                                     PutObjectRequest.builder().build());
         assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes())).isEqualTo(s3Exception);
     }
 

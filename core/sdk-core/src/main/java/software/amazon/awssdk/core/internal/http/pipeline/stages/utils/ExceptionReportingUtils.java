@@ -51,8 +51,6 @@ public final class ExceptionReportingUtils {
             DefaultFailedExecutionContext.builder()
                                          .interceptorContext(context.executionContext().interceptorContext())
                                          .exception(e).build();
-        Throwable throwable = context.interceptorChain().modifyException(failedContext, context.executionAttributes());
-
-        return failedContext.toBuilder().applyMutation(b -> b.exception(throwable)).build();
+        return context.interceptorChain().modifyException(failedContext, context.executionAttributes());
     }
 }
