@@ -16,16 +16,15 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.http.pipeline.stages.utils.ExceptionReportingUtils.reportFailureToInterceptors;
+import static software.amazon.awssdk.core.internal.util.ThrowableUtils.failure;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class ExecutionFailureExceptionReportingStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, OutputT> {
-    private static final Logger log = Logger.loggerFor(ExecutionFailureExceptionReportingStage.class);
     private final RequestPipeline<SdkHttpFullRequest, OutputT> wrapped;
 
     public ExecutionFailureExceptionReportingStage(RequestPipeline<SdkHttpFullRequest, OutputT> wrapped) {
@@ -38,7 +37,7 @@ public final class ExecutionFailureExceptionReportingStage<OutputT> implements R
             return wrapped.execute(input, context);
         } catch (Exception e) {
             Throwable throwable = reportFailureToInterceptors(context, e);
-            throw (Exception) throwable;
+            throw failure(throwable);
         }
     }
 }

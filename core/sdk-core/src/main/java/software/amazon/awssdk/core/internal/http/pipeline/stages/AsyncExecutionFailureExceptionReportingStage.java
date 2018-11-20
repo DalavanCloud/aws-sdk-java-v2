@@ -22,11 +22,9 @@ import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class AsyncExecutionFailureExceptionReportingStage<OutputT>

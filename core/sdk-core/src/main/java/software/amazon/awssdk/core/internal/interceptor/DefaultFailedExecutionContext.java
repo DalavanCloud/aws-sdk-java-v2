@@ -32,7 +32,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * An SDK-internal implementation of {@link Context.FailedExecution}.
  */
 @SdkInternalApi
-public class DefaultFailedExecutionContext implements Context.FailedExecution, ToCopyableBuilder<DefaultFailedExecutionContext.Builder, DefaultFailedExecutionContext> {
+public class DefaultFailedExecutionContext implements Context.FailedExecution,
+                                                      ToCopyableBuilder<DefaultFailedExecutionContext.Builder,
+                                                          DefaultFailedExecutionContext> {
     private final InterceptorContext interceptorContext;
     private final Throwable exception;
 

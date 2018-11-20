@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
 import software.amazon.awssdk.utils.Logger;
 
+@SdkInternalApi
 public final class ExceptionReportingUtils {
     private static final Logger log = Logger.loggerFor(ExceptionReportingUtils.class);
 
@@ -46,7 +48,9 @@ public final class ExceptionReportingUtils {
 
     private static DefaultFailedExecutionContext runModifyException(RequestExecutionContext context, Throwable e) {
         DefaultFailedExecutionContext failedContext =
-            DefaultFailedExecutionContext.builder().interceptorContext(context.executionContext().interceptorContext()).exception(e).build();
+            DefaultFailedExecutionContext.builder()
+                                         .interceptorContext(context.executionContext().interceptorContext())
+                                         .exception(e).build();
         Throwable throwable = context.interceptorChain().modifyException(failedContext, context.executionAttributes());
 
         return failedContext.toBuilder().applyMutation(b -> b.exception(throwable)).build();
